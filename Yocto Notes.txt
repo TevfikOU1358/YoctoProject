@@ -1,0 +1,82 @@
+Embedded linux 4 temel bileşenden oluşur.
+1)Bootloader
+2)Toolchain
+33)Kernel
+4)Root FileSystem
+
+Yocto project: to help developers create their own custom linux distrubutions
+
+Input: Kernel Configuration, Hardware Name, Package/Binaries
+Output:Linux Kernel, Bootloader, Device Tree, Root filesystem, Toolchain
+
+
+Here are the packages needed to build an image on a headless system with a supported Ubuntu or Debian Linux distribution:
+
+$ sudo apt install gawk wget git diffstat unzip texinfo gcc build-essential chrpath socat cpio python3 python3-pip python3-pexpect xz-utils debianutils iputils-ping python3-git python3-jinja2 libegl1-mesa libsdl1.2-dev python3-subunit mesa-common-dev zstd liblz4-tool file locales libacl1
+$ sudo locale-gen en_US.UTF-8
+
+
+Poky----------------------
+Poky is a refference/example distrubition of yocto project
+
+
+Metadata:A set of data
+Medata is collection of 
+-Configuration file(.conf)
+-Recipes(.bb and ..bbappend)
+-Classes(.bbclass)
+-Includes(.inc)
+
+
+BitBake is a build tool that is commonly used in the Yocto Project, an open-source collaboration project that helps developers create custom Linux-based systems for embedded products. 
+BitBake is designed to automate the process of building and packaging software components, 
+allowing developers to create custom Linux distributions tailored to the specific requirements of their embedded systems
+
+
+
+git clone git://git.yoctoproject.org/poky
+cd poky
+git checkout zeus
+
+source oe-init-build-env
+
+tevfikulu13@ubuntu:~/tevfik_source/build$ echo $PATH 
+/home/tevfikulu13/tevfik_source/poky/scripts:(script path added)
+
+Now build linux distrubution: 
+bitbake core-image-minimal
+
+
+
+Start quemu using yocto generated images
+runqemu <machine> <zimage> <filesystem>
+
+<machine>:(qemuarm, qemux86, qemux86-64)
+
+
+runqemu -h :(help)
+
+runqemu qemux86-64 core-image-minimal
+
+
+-----------------Build and run qemu arm
+the default are set to build for a qemux86 target
+edit ./build/conf/local.conf
+MACHINR = "qemuarm"
+
+$runqemu core-image-minimal
+
+to run inNo graphic mode:
+$runqemu core-image-minimal nographic
+
+
+
+-----------------------------------------
+add lsusb to yocto image
+
+
+to add particular package in your root file system
+open your local.conf file and recipe nbame below 
+IMAGE_INSTALL += "recipe-name"
+Ex: IMAGE_INSTALL += "usbutils" for lsusb or IMAGE_INSTALL_append = "usbutils"(recommended)
+$bitbake core-image-minimal
