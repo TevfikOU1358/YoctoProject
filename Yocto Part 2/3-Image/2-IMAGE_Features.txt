@@ -1,0 +1,222 @@
+Image_Features poky/meta/class/core-image.bbclass altında bulunur
+
+
+How it works?
+---------------
+
+To understand how these features work, the best reference is meta/classes/core-image.bbclass
+
+This class lists out the available IMAGE_FEATURES of which most map to package groups while some, such as debug-tweaks and read-only-rootfs, resolve as general configuration settings
+
+In summary, the file looks at the contents of the IMAGE_FEATURES variable and then maps or configures the feature accordingly
+
+Based on this information, the build system automatically adds the appropriate packages or configurations to the IMAGE_INSTALL variable.
+
+# Available IMAGE_FEATURES:
+#
+# - x11                 - X server
+# - x11-base            - X server with minimal environment
+# - x11-sato            - OpenedHand Sato environment
+# - tools-debug         - debugging tools
+# - eclipse-debug       - Eclipse remote debugging support
+# - tools-profile       - profiling tools
+# - tools-testapps      - tools usable to make some device tests
+# - tools-sdk           - SDK (C/C++ compiler, autotools, etc.)
+# - nfs-server          - NFS server
+# - nfs-client          - NFS client
+# - ssh-server-dropbear - SSH server (dropbear)
+# - ssh-server-openssh  - SSH server (openssh)
+# - hwcodecs            - Install hardware acceleration codecs
+# - package-management  - installs package management tools and preserves the package manager database
+# - debug-tweaks        - makes an image suitable for development, e.g. allowing passwordless root logins
+#   - empty-root-password
+#   - allow-empty-password
+#   - allow-root-login
+#   - post-install-logging
+# - dev-pkgs            - development packages (headers, etc.) for all installed packages in the rootfs
+# - dbg-pkgs            - debug symbol packages for all installed packages in the rootfs
+# - doc-pkgs            - documentation packages for all installed packages in the rootfs
+# - bash-completion-pkgs - bash-completion packages for recipes using bash-completion bbclass
+# - ptest-pkgs          - ptest packages for all ptest-enabled recipes
+# - read-only-rootfs    - tweaks an image to support read-only rootfs
+# - stateless-rootfs    - systemctl-native not run, image populated by systemd at runtime
+# - splash              - bootup splash screen
+#
+
+In the default state local.conf file has EXTRA_IMAGE_FEATURES set to "debug-tweaks":şifresiz girmeye yarar.
+Şifre sormasını istiyorsak conf/local_conf 'dan kaldırmalıyız
+
+IMAGE_FEATURES kendi image.bb file ' da yazılır.
+EXTRA_IMAGE_FEATURES conf/local.conf
+---------------------------------------------------
+
+
+
+IMAGE_LINGUAS = "zh-cn" ::dil çince oldu
+IMAGE_FSTYPES: root fiilesystem type
+IMAGE_NAME ="myImage"
+---------------------------------------------------
+
+Example of IMAGE_FEATURES
+---------------------------
+
+To illustrate how you can use these variables to modify your image, consider an example that selects the SSH server.
+
+The Yocto Project ships with two SSH servers you can use with your images: Dropbear and OpenSSH. 
+
+OpenSSH is a well-known standard SSH server implementation
+
+Dropbear is a minimal SSH server appropriate for resource-constrained environments
+
+By default, the core-image-sato image is configured to use Dropbear. The core-image-full-cmdline and core-image-lsb images both include OpenSSH.
+
+The core-image-minimal image does not contain an SSH server.
+
+-----------------------------------------------
+debug-tweaks
+---------------
+
+In the default state, local.conf file has EXTRA_IMAGE_FEATURES set to "debug-tweaks"
+
+debug-tweaks features enable password-less login for the root user
+
+Advantage: makes logging in for debugging or inspection easy during development 
+
+Disadvantage: anyone can easily log in during production.
+
+So, you need to remove the 'debug-tweaks' feature from production image
+------------------------------------------------
+Boot Splash screen
+--------------------
+
+IMAGE_FEATURES += "splash"
+
+or
+
+EXTRA_IMAGE_FEATURES += "splash"
+
+
+-----------------------------------------------
+Read-Only Root Filesystem
+-----------------------------
+
+Why do we need read-only rootfs
+---------------------------------
+
+	Reduce wear on flash memory
+
+	Eliminate system file corruption
+
+How to do it?
+---------------
+
+To create the read-only root filesystem, simply add the "read-only-rootfs" feature to your image.
+
+IMAGE_FEATURES = "read-only-rootfs" in your recipe
+
+	or
+
+EXTRA_IMAGE_FEATURES += "read-only-rootfs" in local.conf
+
+
+
+------------------------------------------------
+Some other Features
+--------------------
+IMAGE_LINGUAS
+--------------
+
+Specifies the list of locales to install into the image during the root filesystem construction process
+
+IMAGE_LINGUAS = "zh-cn"
+
+Inside qemu image
+$ locale -a
+--------------------------------
+IMAGE_FSTYPES
+----------------
+
+The IMAGE_FSTYPES variable determines the root filesystem image type
+
+If more than one format is specified, one image per format will be generated
+
+Image formats instructions are delivered in Poky: meta/classes/image_types.bbclass
+
+$ bitbake -e <image_name> | grep ^IMAGE_FSTYPES=
+
+Types supported
+-----------------
+
+btrfs
+     container
+     cpio
+     cpio.gz
+     cpio.lz4
+     cpio.lzma
+     cpio.xz
+     cramfs
+     elf
+     ext2
+     ext2.bz2
+     ext2.gz
+     ext2.lzma
+     ext3
+     ext3.gz
+     ext4
+     ext4.gz
+     f2fs
+     hddimg
+     iso
+     jffs2
+     jffs2.sum
+     multiubi
+     squashfs
+     squashfs-lz4
+     squashfs-lzo
+     squashfs-xz
+     tar
+     tar.bz2
+     tar.gz
+     tar.lz4
+     tar.xz
+     ubi
+     ubifs
+     wic
+     wic.bz2
+     wic.gz
+     wic.lzma
+
+tools-debug: Installs debugging tools such as strace and gdb.
+
+tools-sdk: Installs a full SDK that runs on the device.
+
+
+
+-----------------------------------------------
+IMAGE_NAME
+----------------
+
+The name of the output image files minus the extension
+
+This variable is derived using the IMAGE_BASENAME, MACHINE, and DATETIME variables
+
+IMAGE_NAME = "${IMAGE_BASENAME}-${MACHINE}-${DATETIME}"
+-------------------------------
+
+
+IMAGE_MANIFEST
+----------------
+
+The manifest file for the image
+
+This file lists all the installed packages that make up the image.
+
+The file contains package information on a line-per-package basis as follows:
+
+packagename packagearch version
+
+
+The image class defines the manifest file as follows:
+
+	IMAGE_MANIFEST = "${DEPLOY_DIR_IMAGE}/${IMAGE_NAME}.rootfs.manifest"
+----------------------------------------
